@@ -8,6 +8,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 BASE_URL = "https://api.themoviedb.org/3"
@@ -54,4 +55,9 @@ async def details(media_type: Literal["movie", "tv"], item_id: int):
     if item_id < 1:
         raise HTTPException(422, "올바른 작품 ID가 필요합니다.")
     return await tmdb(f"/{media_type}/{item_id}", append_to_response="credits,videos,recommendations", include_video_language="ko,en")
+
+# The build is optional during local development, where Vite serves the frontend.
+frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
 
